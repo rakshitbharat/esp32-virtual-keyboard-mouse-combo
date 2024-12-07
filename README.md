@@ -1,7 +1,7 @@
 # ESP32 Remote Control System
 
 <p align="center">
-  <img src="docs/images/system-overview.png" alt="ESP32 Remote Control System Overview" width="800"/>
+  <img src="images/demo.png" alt="ESP32 Remote Control System Overview" width="800"/>
 </p>
 
 A wireless keyboard and mouse control system that allows you to remotely control your PC/Laptop using your smartphone via an ESP32 microcontroller.
