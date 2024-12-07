@@ -56,7 +56,7 @@ A wireless keyboard and mouse control system that allows you to remotely control
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/esp32-remote-control.git
+git clone https://github.com/rakshitbharat/esp32-virtual-keyboard-mouse-combo.git
 ```
 
 2. Install required libraries in Arduino IDE
@@ -88,6 +88,7 @@ git clone https://github.com/yourusername/esp32-remote-control.git
 #define DEVICE_NAME "ESP32-Remote"
 #define BLE_KEYBOARD_ENABLED true
 #define WIFI_ENABLED true
+```
 
 ## 🤝 Contributing
 
@@ -111,7 +112,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📚 Documentation
 
-For detailed documentation, please visit our [Wiki](https://github.com/yourusername/esp32-remote-control/wiki)
+For detailed documentation, please visit our [Wiki](https://github.com/rakshitbharat/esp32-virtual-keyboard-mouse-combo/wiki)
 
 ## ✨ Acknowledgments
 
@@ -128,12 +129,4 @@ For support, please open an issue in the GitHub repository or contact the mainta
 <p align="center">
 Made with ❤️ by the ESP32 Remote Control Team
 </p>
-This README provides a comprehensive overview of your project, including setup instructions, features, and contribution guidelines. You may want to:
-Add actual screenshots of your mobile app
-Update the repository URLs
-Add specific library versions and dependencies
-Include any specific troubleshooting steps based on testing
-Create the suggested Wiki pages
-Add actual configuration parameters
-Would you like me to modify any section or add additional information to the README?
 ```
