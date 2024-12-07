@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESP32 Remote Control System</title>
+    <!-- Tailwind CSS and React CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                primary: "#0f172a",
+                secondary: "#1e293b",
+                accent: "#334155",
+              },
+            },
+            backgroundImage: {
+              "gradient-dark":
+                "linear-gradient(to bottom right, #0f172a, #1e293b)",
+              "gradient-light":
+                "linear-gradient(to bottom right, #f8fafc, #e2e8f0)",
+              "card-gradient-dark": "linear-gradient(145deg, #1e293b, #0f172a)",
+              "card-gradient-light":
+                "linear-gradient(145deg, #ffffff, #f8fafc)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .glass-effect {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .device-card {
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2),
+          -5px -5px 15px rgba(255, 255, 255, 0.05);
+      }
+
+      .connection-arrow {
+        position: relative;
+        width: 60px;
+        height: 2px;
+        background: currentColor;
+      }
+
+      .connection-arrow::after {
+        content: "";
+        position: absolute;
+        right: -2px;
+        top: -4px;
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid currentColor;
+        border-top: 2px solid currentColor;
+        transform: rotate(45deg);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-light dark:bg-gradient-dark transition-colors duration-300"
+  >
+    <div id="root"></div>
+
+    <script type="text/babel">
+      function App() {
+        const [isDark, setIsDark] = React.useState(true);
+
+        const toggleTheme = () => {
+          setIsDark(!isDark);
+          document.documentElement.classList.toggle("dark");
+        };
+
+        const devices = {
+          pc: {
+            icon: "https://cdn-icons-png.flaticon.com/512/3474/3474360.png",
+            name: "PC/Laptop",
+            connection: "USB Connection",
+            peripherals: [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/2267/2267359.png",
+                name: "Keyboard",
+              },
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/1787/1787071.png",
+                name: "Mouse",
+              },
+            ],
+          },
+          esp32: {
+            icon: "https://cdn-icons-png.flaticon.com/512/2821/2821729.png",
+            name: "ESP32",
+            connection: "Wireless Bridge",
+            peripherals: [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/93/93158.png",
+                name: "WiFi",
+              },
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/81/81915.png",
+                name: "Bluetooth",
+              },
+            ],
+          },
+          mobile: {
+            icon: "https://cdn-icons-png.flaticon.com/512/545/545245.png",
+            name: "Mobile App",
+            connection: "Remote Control",
+            peripherals: [
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/93/93158.png",
+                name: "WiFi",
+              },
+              {
+                icon: "https://cdn-icons-png.flaticon.com/512/81/81915.png",
+                name: "Bluetooth",
+              },
+            ],
+          },
+        };
+
+        const DeviceGroup = ({ device, withPeripherals = true }) => (
+          <div className="device-card flex flex-col items-center p-8 rounded-2xl border border-gray-200/20 bg-card-gradient-light dark:bg-card-gradient-dark backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl min-h-[360px] w-[280px]">
+            <div className="text-center flex flex-col items-center flex-grow w-full">
+              <div className="p-4 rounded-full bg-gray-50/50 dark:bg-dark-accent/30 mb-6 w-32 h-32 flex items-center justify-center">
+                <img
+                  src={device.icon}
+                  alt={device.name}
+                  className={`w-20 h-20 object-contain transition-transform duration-300 hover:scale-110 ${
+                    isDark ? "invert" : ""
+                  }`}
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                {device.name}
+              </h3>
+              <div className="px-6 py-2.5 rounded-full bg-blue-50/50 dark:bg-dark-accent/50 text-sm font-medium text-blue-600 dark:text-blue-300 w-fit">
+                {device.connection}
+              </div>
+            </div>
+            {withPeripherals && device.peripherals && (
+              <div className="flex gap-8 mt-auto pt-6 border-t border-gray-200/20 w-full justify-center">
+                {device.peripherals.map((peripheral, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <div className="p-3 rounded-lg bg-gray-50/50 dark:bg-dark-accent/30">
+                      <img
+                        src={peripheral.icon}
+                        alt={peripheral.name}
+                        className={`w-8 h-8 object-contain ${
+                          isDark ? "invert" : ""
+                        }`}
+                      />
+                    </div>
+                    <span className="text-xs mt-2 font-medium text-gray-600 dark:text-gray-400">
+                      {peripheral.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+        const ConnectionArrow = ({ label }) => (
+          <div className="flex flex-col items-center gap-2 md:w-24 md:my-0 my-4">
+            <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+              {label}
+            </span>
+            <div className="connection-arrow text-gray-400 dark:text-gray-600 rotate-90 md:rotate-0" />
+          </div>
+        );
+
+        return (
+          <div className="container mx-auto px-4 py-12 max-w-7xl">
+            <button
+              onClick={toggleTheme}
+              className="fixed top-6 right-6 px-5 py-3 rounded-full bg-white/80 dark:bg-dark-secondary/80 text-gray-800 dark:text-gray-200 hover:scale-105 transition-all duration-300 shadow-lg backdrop-blur-sm"
+            >
+              {isDark ? "☀️ Light" : "🌙 Dark"}
+            </button>
+
+            <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-200 mb-16 tracking-tight">
+              ESP32 Remote Control System
+            </h1>
+
+            <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-16">
+              <DeviceGroup device={devices.pc} />
+              <ConnectionArrow label="USB Programming" />
+              <DeviceGroup device={devices.esp32} />
+              <ConnectionArrow label="Bluetooth Connection" />
+              <DeviceGroup device={devices.mobile} withPeripherals={false} />
+            </div>
+
+            <div className="glass-effect mt-12 p-8 rounded-2xl bg-white/40 dark:bg-dark-secondary/40 text-gray-800 dark:text-gray-200 shadow-xl">
+              <h2 className="text-xl font-bold mb-4">How it works:</h2>
+              <ol className="list-decimal list-inside space-y-3">
+                <li>
+                  Connect your ESP32 to your PC/Laptop using a USB cable for
+                  initial setup and programming.
+                </li>
+                <li>
+                  The ESP32 is configured with both WiFi and Bluetooth
+                  capabilities.
+                </li>
+                <li>Use a mobile app to connect to the ESP32 via Bluetooth.</li>
+                <li>
+                  Once connected, you can remotely control your PC's keyboard
+                  and mouse through the mobile app, allowing you to:
+                  <ul className="list-disc list-inside ml-6 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+                    <li>Move the mouse cursor</li>
+                    <li>Click, right-click, and scroll</li>
+                    <li>Type text using the virtual keyboard</li>
+                    <li>Use keyboard shortcuts</li>
+                  </ul>
+                </li>
+              </ol>
+
+              <div className="mt-6 p-4 bg-amber-50 dark:bg-dark-accent rounded-lg">
+                <strong>Note:</strong> This system allows you to control your
+                computer remotely using your smartphone as a wireless keyboard
+                and mouse, making it perfect for presentations, media control,
+                or remote desktop access.
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
