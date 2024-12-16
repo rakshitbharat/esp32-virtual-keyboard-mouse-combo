@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "platformio.platformio-ide",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "msjsdiag.vscode-react-native",
+        "dsznajder.es7-react-js-snippets",
+        "christian-kohler.npm-intellisense",
+        "christian-kohler.path-intellisense",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}

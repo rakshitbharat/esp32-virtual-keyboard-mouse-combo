@@ -129,4 +129,61 @@ For support, please open an issue in the GitHub repository or contact the mainta
 <p align="center">
 Made with ❤️ by the ESP32 Remote Control Team
 </p>
-```
+
+# ESP32 Bluetooth LE Keyboard-Mouse Combo
+
+This project implements a Bluetooth Low Energy (BLE) keyboard and mouse combo using an ESP32 microcontroller. It allows you to create a wireless input device that can be connected to computers, tablets, and other Bluetooth-enabled devices.
+
+## Required Libraries
+
+This project depends on the following libraries:
+
+1. [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard) - For BLE keyboard functionality
+2. [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse) - For BLE mouse functionality
+3. [ESP32-BLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad) - For additional gamepad functionality (optional)
+
+## Hardware Requirements
+
+- ESP32 Development Board
+- Input components (buttons, joystick, etc.) based on your specific implementation
+- Power supply (USB or battery)
+
+## Setup Instructions
+
+1. Install the Arduino IDE
+2. Add ESP32 board support to Arduino IDE:
+   - Open Arduino IDE
+   - Go to File > Preferences
+   - Add `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json` to Additional Board Manager URLs
+   - Go to Tools > Board > Boards Manager
+   - Search for ESP32 and install
+
+3. Install Required Libraries:
+   - Go to Sketch > Include Library > Manage Libraries
+   - Search for and install the required libraries listed above
+
+4. Configure Board Settings:
+   - Select your ESP32 board from Tools > Board
+   - Select the appropriate port from Tools > Port
+
+## Usage
+
+1. Clone this repository
+2. Open the project in Arduino IDE
+3. Configure your input pins in the code
+4. Upload the code to your ESP32
+5. The device will appear as a Bluetooth keyboard and mouse in your device's Bluetooth settings
+6. Connect to the device and start using it
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Thanks to [T-vK](https://github.com/T-vK) for the ESP32 BLE Keyboard and Mouse libraries
+- Thanks to [lemmingDev](https://github.com/lemmingDev) for the ESP32 BLE Gamepad library

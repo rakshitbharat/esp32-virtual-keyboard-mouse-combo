@@ -1,0 +1,28 @@
+{
+    "folders": [
+        {
+            "name": "ESP32 HID Controller",
+            "path": "."
+        },
+        {
+            "name": "Mobile App",
+            "path": "mobile-app"
+        }
+    ],
+    "settings": {
+        "files.autoSave": "afterDelay",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "platformio.platformio-ide",
+            "ms-vscode.cpptools",
+            "esbenp.prettier-vscode",
+            "dbaeumer.vscode-eslint",
+            "msjsdiag.vscode-react-native"
+        ]
+    }
+}
