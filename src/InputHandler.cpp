@@ -7,7 +7,7 @@ InputHandler::InputHandler(BLEManager& bleManager, QueueHandle_t queue)
 void InputHandler::handleCommand(const String& cmd) {
     Command command;
     command.type = parseCommandType(cmd);
-    
+
     if (command.type == Command::INVALID) {
         return;
     }
@@ -16,7 +16,7 @@ void InputHandler::handleCommand(const String& cmd) {
         case Command::KEY_PRESS:
             command.data.key = cmd[4];
             break;
-            
+
         case Command::KEY_SPECIAL:
             if (cmd == "special:enter") {
                 command.data.special_key = KEY_RETURN;
@@ -28,19 +28,19 @@ void InputHandler::handleCommand(const String& cmd) {
                 return;
             }
             break;
-            
+
         case Command::MOUSE_MOVE: {
             int commaIndex = cmd.indexOf(',', 5);
             if (commaIndex != -1) {
-                command.data.mouse.x = constrain(cmd.substring(5, commaIndex).toInt(), -127, 127);
-                command.data.mouse.y = constrain(cmd.substring(commaIndex + 1).toInt(), -127, 127);
+                command.data.mouse.x = constrain(cmd.substring(5, commaIndex).toInt(), -32768, 32767);
+                command.data.mouse.y = constrain(cmd.substring(commaIndex + 1).toInt(), -32768, 32767);
                 command.data.mouse.scroll = 0;
             } else {
                 return;
             }
             break;
         }
-            
+
         case Command::MOUSE_CLICK:
             if (cmd.substring(6) == "left") {
                 command.data.special_key = MOUSE_LEFT;
@@ -52,23 +52,23 @@ void InputHandler::handleCommand(const String& cmd) {
                 return;
             }
             break;
-            
+
         case Command::MOUSE_SCROLL:
             command.data.mouse.scroll = constrain(cmd.substring(7).toInt(), -127, 127);
             command.data.mouse.x = 0;
             command.data.mouse.y = 0;
             break;
-            
+
         default:
             return;
     }
-    
+
     xQueueSend(commandQueue, &command, 0);
 }
 
 Command::Type InputHandler::parseCommandType(const String& cmd) {
     if (cmd.length() < 2) return Command::INVALID;
-    
+
     if (cmd.startsWith("key:")) return Command::KEY_PRESS;
     if (cmd.startsWith("special:")) return Command::KEY_SPECIAL;
     if (cmd.startsWith("move:")) return Command::MOUSE_MOVE;

@@ -16,9 +16,9 @@ SemaphoreHandle_t bleMutex = nullptr;
 TaskHandle_t monitorTaskHandle = nullptr;
 
 // Battery monitoring constants
-const int BATTERY_PIN = 34;  
-const float BATTERY_THRESHOLD = 3.3;  
-const int WDT_TIMEOUT_SECONDS = 5;  
+const int BATTERY_PIN = 34;
+const float BATTERY_THRESHOLD = 3.3;
+const int WDT_TIMEOUT_SECONDS = 5;
 
 void initPowerManagement() {
     setCpuFrequencyMhz(CPU_FREQUENCY);
@@ -37,7 +37,7 @@ void checkBattery() {
     if (now - lastCheck >= BLE_RECONNECT_INTERVAL) {
         lastCheck = now;
         if (analogRead(BATTERY_PIN) * 3.3 / 4095.0 < BATTERY_THRESHOLD) {
-            Serial.write('B'); 
+            Serial.write('B');
         }
     }
 }
@@ -60,37 +60,37 @@ void monitorTask(void* parameter) {
 
 void setup() {
     Serial.begin(BAUD_RATE);
-    Serial.write('S'); 
-    
+    Serial.write('S');
+
     bleMutex = xSemaphoreCreateMutex();
     commandQueue = xQueueCreate(HID_QUEUE_SIZE, sizeof(Command));
-    
+
     if (!bleMutex || !commandQueue) {
-        Serial.write('E'); 
+        Serial.write('E');
         while(1) delay(1000);
     }
-    
+
     initPowerManagement();
     initWatchdog();
-    
+
     if (!bleManager.begin()) {
-        Serial.write('F'); 
+        Serial.write('F');
         while(1) delay(1000);
     }
-    
+
     inputHandler = new InputHandler(bleManager, commandQueue);
-    
+
     xTaskCreatePinnedToCore(
         monitorTask,
         "Monitor",
         STACK_SIZE,
         NULL,
-        1,
+        2,
         &monitorTaskHandle,
         CORE_TASK_MONITOR
     );
 
-    Serial.write('R'); 
+    Serial.write('R');
 }
 
 void loop() {
