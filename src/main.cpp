@@ -4,6 +4,13 @@
 #include "BLEMonitor.h"
 #include "InputHandler.h"
 #include "CommandTypes.h"
+#include <esp_wifi.h>
+#include <esp_bt.h>
+#include <esp_coexist.h>
+#include <esp_pm.h>
+#include <esp_task_wdt.h>
+#include <esp_system.h>
+#include <esp_ota_ops.h>
 
 // Global variables
 BLEManager bleManager;
@@ -15,6 +22,114 @@ SemaphoreHandle_t bleMutex = nullptr;
 // Status tracking
 unsigned long lastStatusUpdate = 0;
 unsigned long lastBatteryCheck = 0;
+
+// Power management configuration
+#define CONFIG_PM_ENABLE
+#define DEFAULT_LIGHT_SLEEP_ENABLE true
+
+// Battery monitoring
+#define BATTERY_PIN 34  // ADC pin for battery monitoring
+#define BATTERY_CHECK_INTERVAL 60000  // Check battery every minute
+#define LOW_BATTERY_THRESHOLD 20      // Low battery warning at 20%
+#define DEEP_SLEEP_THRESHOLD 10       // Enter deep sleep at 10%
+#define DEEP_SLEEP_DURATION 1800000000 // 30 minutes in microseconds
+
+uint8_t batteryLevel = 100;
+bool lowBatteryWarning = false;
+
+// Watchdog configuration
+#define WDT_TIMEOUT 5  // 5 second watchdog timeout
+#define MAX_CRASHES 3  // Maximum number of crashes before factory reset
+
+RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR int crashCount = 0;
+
+void initPowerManagement() {
+    #ifdef CONFIG_PM_ENABLE
+    // Configure dynamic frequency scaling:
+    // Automatically scale CPU frequency between 80MHz and 240MHz
+    esp_pm_config_esp32_t pm_config = {
+        .max_freq_mhz = 240,
+        .min_freq_mhz = 80,
+        .light_sleep_enable = DEFAULT_LIGHT_SLEEP_ENABLE
+    };
+    esp_pm_configure(&pm_config);
+    #endif
+    
+    // Disable WiFi
+    esp_wifi_deinit();
+    
+    // Configure Bluetooth and WiFi coexistence
+    esp_coex_preference_set(ESP_COEX_PREFER_BT);
+}
+
+void initWatchdog() {
+    // Initialize watchdog
+    esp_task_wdt_init(WDT_TIMEOUT, true); // true = panic on timeout
+    esp_task_wdt_add(NULL); // Add current task to WDT
+    
+    // Check for crash recovery
+    ++bootCount;
+    if (esp_reset_reason() == ESP_RST_PANIC) {
+        ++crashCount;
+        log_w("System crashed! Crash count: %d", crashCount);
+        
+        if (crashCount >= MAX_CRASHES) {
+            log_e("Too many crashes! Performing factory reset...");
+            esp_partition_iterator_t pi = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, NULL);
+            if (pi != NULL) {
+                const esp_partition_t* factory = esp_partition_get(pi);
+                esp_partition_iterator_release(pi);
+                esp_ota_set_boot_partition(factory);
+                esp_restart();
+            }
+        }
+    } else {
+        crashCount = 0; // Reset crash count on normal boot
+    }
+    
+    log_i("Boot count: %d", bootCount);
+}
+
+uint8_t getBatteryLevel() {
+    // Read battery voltage from ADC
+    uint32_t reading = analogRead(BATTERY_PIN);
+    
+    // Convert ADC reading to voltage (assuming 3.3V reference)
+    float voltage = (reading * 3.3) / 4095.0;
+    
+    // Convert voltage to percentage (assuming 3.7V Li-Po battery)
+    // 4.2V = 100%, 3.0V = 0%
+    float percentage = ((voltage - 3.0) / 1.2) * 100.0;
+    return constrain((int)percentage, 0, 100);
+}
+
+void checkBatteryStatus() {
+    static unsigned long lastCheck = 0;
+    unsigned long currentMillis = millis();
+    
+    if (currentMillis - lastCheck >= BATTERY_CHECK_INTERVAL) {
+        batteryLevel = getBatteryLevel();
+        
+        // Update device battery level
+        bleManager.getKeyboard()->setBatteryLevel(batteryLevel);
+        bleManager.getMouse()->setBatteryLevel(batteryLevel);
+        
+        // Check for low battery
+        if (batteryLevel <= LOW_BATTERY_THRESHOLD && !lowBatteryWarning) {
+            lowBatteryWarning = true;
+            log_w("Low battery warning: %d%%", batteryLevel);
+        }
+        
+        // Check for critical battery level
+        if (batteryLevel <= DEEP_SLEEP_THRESHOLD) {
+            log_w("Critical battery level! Entering deep sleep...");
+            esp_deep_sleep(DEEP_SLEEP_DURATION);
+        }
+        
+        lastCheck = currentMillis;
+    }
+}
 
 void checkBattery() {
     const unsigned long BATTERY_CHECK_INTERVAL = 60000; // Check every minute
@@ -34,15 +149,21 @@ void printStatus() {
         Serial.printf("Status - Keyboard: %s, Mouse: %s, Battery: %d%%\n",
             bleManager.getKeyboard()->isConnected() ? "Connected" : "Disconnected",
             bleManager.getMouse()->isConnected() ? "Connected" : "Disconnected",
-            BATTERY_LEVEL
+            batteryLevel
         );
     }
 }
 
 void setup() {
     // Initialize serial with high baud rate
-    Serial.begin(BAUD_RATE);
+    Serial.begin(921600);
     log_i("Starting BLE HID Controller...");
+    
+    // Initialize watchdog
+    initWatchdog();
+    
+    // Initialize power management
+    initPowerManagement();
     
     // Create synchronization primitives
     bleMutex = xSemaphoreCreateMutex();
@@ -72,9 +193,12 @@ void setup() {
 }
 
 void loop() {
+    // Reset watchdog timer
+    esp_task_wdt_reset();
+    
     // Regular status checks
     printStatus();
-    checkBattery();
+    checkBatteryStatus();
     
     // Process incoming commands
     if (Serial.available()) {
@@ -94,6 +218,16 @@ void loop() {
     
     // Small delay to prevent watchdog reset and reduce power consumption
     vTaskDelay(pdMS_TO_TICKS(1));
+    
+    // If no activity for a while, enter light sleep
+    static unsigned long lastActivity = 0;
+    if (millis() - lastActivity > 300000) { // 5 minutes
+        esp_task_wdt_reset(); // Reset watchdog before sleep
+        esp_light_sleep_start();
+        lastActivity = millis();
+    }
+    
+    taskYIELD();
 }
 
 void InputHandler::handleCommand(String command) {
