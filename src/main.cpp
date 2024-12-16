@@ -1,10 +1,16 @@
 #include <Arduino.h>
 #include "config.h"
 #include "BLEManager.h"
+#include "BLEMonitor.h"
 #include "InputHandler.h"
+#include "CommandTypes.h"
 
+// Global variables
 BLEManager bleManager;
+BLEMonitor* bleMonitor = nullptr;
 InputHandler* inputHandler = nullptr;
+QueueHandle_t commandQueue;
+SemaphoreHandle_t bleMutex = nullptr;
 
 // Status tracking
 unsigned long lastStatusUpdate = 0;
@@ -34,33 +40,35 @@ void printStatus() {
 }
 
 void setup() {
-    // Initialize Serial for debugging
+    // Initialize serial with high baud rate
     Serial.begin(BAUD_RATE);
-    Serial.println("ESP32 BLE HID Device Starting...");
+    log_i("Starting BLE HID Controller...");
+    
+    // Create synchronization primitives
+    bleMutex = xSemaphoreCreateMutex();
+    commandQueue = xQueueCreate(HID_QUEUE_SIZE, sizeof(Command));
+    
+    if (!bleMutex || !commandQueue) {
+        log_e("Failed to create queue or mutex!");
+        while(1) delay(1000); // Fatal error
+    }
     
     // Set CPU frequency for optimal BLE performance
     if (setCpuFrequencyMhz(CPU_FREQUENCY)) {
-        Serial.printf("CPU Frequency set to %dMHz\n", CPU_FREQUENCY);
+        log_i("CPU Frequency set to %dMHz", CPU_FREQUENCY);
     }
     
     // Initialize BLE
     bleManager.begin();
     
-    // Wait for BLE to initialize
-    delay(1000);
-    
-    // Check if BLE is working
-    if (!bleManager.getKeyboard()->isConnected() && !bleManager.getMouse()->isConnected()) {
-        Serial.println("BLE services not responding. Restarting...");
-        delay(1000);
-        ESP.restart();
-    }
-    
-    // Print device info and commands
-    bleManager.printDeviceInfo();
+    // Create and start monitor
+    bleMonitor = new BLEMonitor(bleManager);
+    bleMonitor->begin();
     
     // Create input handler
     inputHandler = new InputHandler(bleManager);
+    
+    log_i("BLE HID Controller ready!");
 }
 
 void loop() {
@@ -73,8 +81,9 @@ void loop() {
         String command = Serial.readStringUntil('\n');
         command.trim();
         
-        if (inputHandler) {
+        if (inputHandler && xSemaphoreTake(bleMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
             inputHandler->handleCommand(command);
+            xSemaphoreGive(bleMutex);
         }
     }
     
@@ -84,5 +93,5 @@ void loop() {
     }
     
     // Small delay to prevent watchdog reset and reduce power consumption
-    delay(1);
+    vTaskDelay(pdMS_TO_TICKS(1));
 }

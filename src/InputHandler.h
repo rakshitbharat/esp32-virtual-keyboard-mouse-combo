@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "BLEManager.h"
+#include "config.h"
 
 class InputHandler {
 public:
