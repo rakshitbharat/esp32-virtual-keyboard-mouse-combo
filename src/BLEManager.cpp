@@ -2,10 +2,10 @@
 #include <Arduino.h>
 
 BLEManager::BLEManager() :
-    keyboard(DEVICE_NAME, MANUFACTURER, BATTERY_LEVEL),
-    mouse(DEVICE_NAME, MANUFACTURER, BATTERY_LEVEL)
+    keyboard(DEVICE_NAME),
+    mouse(DEVICE_NAME)
 {
-    // Remove setSecurityMode calls as they don't exist
+    // No additional initialization needed
 }
 
 bool BLEManager::begin() {
