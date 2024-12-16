@@ -1,15 +1,20 @@
 {
+    // See http://go.microsoft.com/fwlink/?LinkId=827846
+    // for the documentation about the extensions.json format
     "recommendations": [
-        "platformio.platformio-ide",
-        "ms-vscode.cpptools",
-        "ms-vscode.cpptools-extension-pack",
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "msjsdiag.vscode-react-native",
-        "dsznajder.es7-react-js-snippets",
         "christian-kohler.npm-intellisense",
         "christian-kohler.path-intellisense",
+        "dbaeumer.vscode-eslint",
+        "dsznajder.es7-react-js-snippets",
         "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "msjsdiag.vscode-react-native",
+        "platformio.platformio-ide",
         "streetsidesoftware.code-spell-checker"
+    ],
+    "unwantedRecommendations": [
+        "ms-vscode.cpptools-extension-pack"
     ]
 }

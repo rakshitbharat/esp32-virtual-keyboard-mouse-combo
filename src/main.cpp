@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -12,6 +13,10 @@
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define KEYBOARD_CHAR_UUID  "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 #define MOUSE_CHAR_UUID    "beb5483f-36e1-4688-b7f5-ea07361b26a8"
+
+// Forward declarations of handler functions
+void handleKeyboardCommand(String command);
+void handleMouseCommand(String command);
 
 BLEServer* pServer = nullptr;
 BLECharacteristic* pKeyboardCharacteristic = nullptr;
