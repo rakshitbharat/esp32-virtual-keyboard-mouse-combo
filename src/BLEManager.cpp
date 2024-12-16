@@ -1,7 +1,12 @@
 #include "BLEManager.h"
 #include <Arduino.h>
 
-BLEManager::BLEManager() : keyboard(DEVICE_NAME), mouse(DEVICE_NAME) {}
+BLEManager::BLEManager() :
+    keyboard(DEVICE_NAME, MANUFACTURER, BATTERY_LEVEL),
+    mouse(DEVICE_NAME, MANUFACTURER, BATTERY_LEVEL)
+{
+    // Remove setSecurityMode calls as they don't exist
+}
 
 bool BLEManager::begin() {
     keyboard.begin();
@@ -24,24 +29,28 @@ void BLEManager::processCommand(const Command& cmd) {
             if (keyboard.isConnected()) keyboard.write(cmd.data.special_key);
             break;
 
+        case Command::KEY_MODIFIER:
+            if (keyboard.isConnected()) {
+                keyboard.press(cmd.data.modifier.modifiers);
+                keyboard.press(cmd.data.modifier.key);
+                keyboard.releaseAll();
+            }
+            break;
+
         case Command::MOUSE_MOVE:
             if (mouse.isConnected()) mouse.move(cmd.data.mouse.x, cmd.data.mouse.y);
             break;
 
         case Command::MOUSE_CLICK:
-            if (mouse.isConnected()) {
-                switch(cmd.data.special_key) {
-                    case MOUSE_LEFT:
-                        mouse.click(MOUSE_LEFT);
-                        break;
-                    case MOUSE_RIGHT:
-                        mouse.click(MOUSE_RIGHT);
-                        break;
-                    case MOUSE_MIDDLE:
-                        mouse.click(MOUSE_MIDDLE);
-                        break;
-                }
-            }
+            if (mouse.isConnected()) mouse.click(cmd.data.special_key);
+            break;
+
+        case Command::MOUSE_PRESS:
+            if (mouse.isConnected()) mouse.press(cmd.data.special_key);
+            break;
+
+        case Command::MOUSE_RELEASE:
+            if (mouse.isConnected()) mouse.release(cmd.data.special_key);
             break;
 
         case Command::MOUSE_SCROLL:

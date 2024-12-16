@@ -15,11 +15,6 @@ QueueHandle_t commandQueue = nullptr;
 SemaphoreHandle_t bleMutex = nullptr;
 TaskHandle_t monitorTaskHandle = nullptr;
 
-// Battery monitoring constants
-const int BATTERY_PIN = 34;
-const float BATTERY_THRESHOLD = 3.3;
-const int WDT_TIMEOUT_SECONDS = 5;
-
 void initPowerManagement() {
     setCpuFrequencyMhz(CPU_FREQUENCY);
     esp_wifi_deinit();
@@ -34,9 +29,10 @@ void initWatchdog() {
 void checkBattery() {
     static uint32_t lastCheck = 0;
     uint32_t now = millis();
-    if (now - lastCheck >= BLE_RECONNECT_INTERVAL) {
+    if (now - lastCheck >= BATTERY_CHECK_INTERVAL) {
         lastCheck = now;
-        if (analogRead(BATTERY_PIN) * 3.3 / 4095.0 < BATTERY_THRESHOLD) {
+        float batteryVoltage = analogRead(BATTERY_PIN) * 3.3f / 4095.0f;
+        if (batteryVoltage < BATTERY_THRESHOLD) {
             Serial.write('B');
         }
     }

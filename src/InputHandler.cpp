@@ -71,8 +71,11 @@ Command::Type InputHandler::parseCommandType(const String& cmd) {
 
     if (cmd.startsWith("key:")) return Command::KEY_PRESS;
     if (cmd.startsWith("special:")) return Command::KEY_SPECIAL;
+    if (cmd.startsWith("modifier:")) return Command::KEY_MODIFIER;
     if (cmd.startsWith("move:")) return Command::MOUSE_MOVE;
     if (cmd.startsWith("click:")) return Command::MOUSE_CLICK;
+    if (cmd.startsWith("press:")) return Command::MOUSE_PRESS;
+    if (cmd.startsWith("release:")) return Command::MOUSE_RELEASE;
     if (cmd.startsWith("scroll:")) return Command::MOUSE_SCROLL;
     return Command::INVALID;
 }
