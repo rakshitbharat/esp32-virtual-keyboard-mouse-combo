@@ -1,33 +1,18 @@
 #pragma once
 
-#include <Arduino.h>
 #include "BLEManager.h"
-#include "config.h"
-#include "CommandTypes.h"
+#include "Command.h"
+#include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
 
 class InputHandler {
 public:
-    InputHandler(BLEManager& bleManager, QueueHandle_t cmdQueue);
-    
-    void handleCommand(const String& command);
-    void update(); // For key repeat and other periodic tasks
-    
+    InputHandler(BLEManager& bleManager, QueueHandle_t queue);
+    void handleCommand(const String& cmd);
+
 private:
-    void handleKeyboardCommand(const String& command);
-    void handleMouseCommand(const String& command);
-    void handleModifiers(const String& modifiers);
-    void handleSpecialKeys(uint8_t key);
-    void queueCommand(const Command& cmd);
-    
+    Command::Type parseCommandType(const String& cmd);
     BLEManager& bleManager;
     QueueHandle_t commandQueue;
-    unsigned long lastReport;
-    unsigned long lastKeyPress;
-    bool keyRepeating;
-    char repeatKey;
-    
-    // Mouse state
-    int16_t lastX;
-    int16_t lastY;
-    bool isDragging;
 };

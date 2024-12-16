@@ -7,14 +7,11 @@
 class BLEMonitor {
 public:
     BLEMonitor(BLEManager& manager);
-    void begin();
-    static void monitorTask(void* parameter);
-    
+    bool begin();
+
 private:
-    BLEManager& bleManager;
-    TaskHandle_t monitorTaskHandle;
+    static void monitorTask(void* parameter);
     static BLEMonitor* instance;
-    
-    void handleConnectionChanges();
-    void attemptReconnection();
+    BLEManager& bleManager;
+    TaskHandle_t taskHandle;
 };
