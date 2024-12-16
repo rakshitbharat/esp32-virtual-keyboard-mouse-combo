@@ -4,17 +4,21 @@
 #include <BleKeyboard.h>
 #include <BleMouse.h>
 #include "config.h"
+#include "CommandTypes.h"
 
 class BLEManager {
 public:
     BLEManager();
-    void begin();
-    void printDeviceInfo();
+    bool begin();
+    bool isConnected() const;
+    void processCommand(const Command& cmd);
+    void update();
     
-    BleKeyboard* getKeyboard() { return &bleKeyboard; }
-    BleMouse* getMouse() { return &bleMouse; }
+    BleKeyboard* getKeyboard() { return &keyboard; }
+    BleMouse* getMouse() { return &mouse; }
     
 private:
-    BleKeyboard bleKeyboard;
-    BleMouse bleMouse;
+    BleKeyboard keyboard;
+    BleMouse mouse;
+    bool initialized;
 };
