@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <BleKeyboard.h>
 #include <BleMouse.h>
 #include "config.h"
@@ -14,6 +13,7 @@ public:
     void processCommand(const Command& cmd);
     void update();
     
+    // Remove const from getters since BleKeyboard/BleMouse don't support const
     BleKeyboard* getKeyboard() { return &keyboard; }
     BleMouse* getMouse() { return &mouse; }
     

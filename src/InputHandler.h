@@ -7,7 +7,7 @@
 
 class InputHandler {
 public:
-    InputHandler(BLEManager& bleManager);
+    InputHandler(BLEManager& bleManager, QueueHandle_t cmdQueue);
     
     void handleCommand(const String& command);
     void update(); // For key repeat and other periodic tasks
@@ -20,6 +20,7 @@ private:
     void queueCommand(const Command& cmd);
     
     BLEManager& bleManager;
+    QueueHandle_t commandQueue;
     unsigned long lastReport;
     unsigned long lastKeyPress;
     bool keyRepeating;

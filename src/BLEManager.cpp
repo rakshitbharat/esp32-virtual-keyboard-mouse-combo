@@ -1,25 +1,19 @@
 #include "BLEManager.h"
-#include <esp_bt_main.h>
-#include <esp_bt_device.h>
+#include <Arduino.h>
 
-BLEManager::BLEManager()
-    : keyboard(DEVICE_NAME, MANUFACTURER, 100)
-    , mouse(DEVICE_NAME, MANUFACTURER, 100)
-    , initialized(false) {
-}
+BLEManager::BLEManager() : keyboard("ESP32"), mouse("ESP32") {}
 
 bool BLEManager::begin() {
-    if (!initialized) {
-        keyboard.begin();
-        mouse.begin();
-        initialized = true;
-        log_i("BLE HID devices initialized");
-    }
-    return initialized;
+    keyboard.begin();
+    mouse.begin();
+    Serial.println("BLE HID devices initialized");
+    return true;
 }
 
 bool BLEManager::isConnected() const {
-    return keyboard.isConnected() && mouse.isConnected();
+    // Remove const from method calls since the libraries don't support const
+    BLEManager* nonConstThis = const_cast<BLEManager*>(this);
+    return nonConstThis->keyboard.isConnected() && nonConstThis->mouse.isConnected();
 }
 
 void BLEManager::processCommand(const Command& cmd) {
@@ -57,15 +51,15 @@ void BLEManager::processCommand(const Command& cmd) {
 }
 
 void BLEManager::update() {
-    // Handle any periodic BLE tasks here
+    static uint32_t lastReconnectAttempt = 0;
+    const uint32_t RECONNECT_INTERVAL = 5000; // 5 seconds
+
     if (!isConnected()) {
-        static uint32_t lastAttempt = 0;
         uint32_t now = millis();
-        
-        if (now - lastAttempt >= BLE_CONNECT_TIMEOUT) {
-            log_i("Attempting to reconnect BLE devices...");
+        if (now - lastReconnectAttempt >= RECONNECT_INTERVAL) {
+            lastReconnectAttempt = now;
+            Serial.println("Attempting to reconnect BLE devices...");
             begin();
-            lastAttempt = now;
         }
     }
 }
